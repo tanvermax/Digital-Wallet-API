@@ -12,10 +12,11 @@ const credentialsLogin = async (payoad: Partial<IUser>) => {
 
 
     const { email, password } = payoad;
+    
     const IsUserExit = await User.findOne({ email })
-
+    console.log(IsUserExit)
     if (!IsUserExit) {
-        throw new AppError(httpStatus.BAD_REQUEST, "user des not exit")
+        throw new AppError(httpStatus.BAD_REQUEST, "User does not exit")
     }
 
     if (!IsUserExit.password) {

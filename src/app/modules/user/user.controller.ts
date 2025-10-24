@@ -9,6 +9,7 @@ import { addMoneyToWallet, sendMoney, withdrawfromWallet } from "../waller/walle
 import { User } from "./user.model";
 import { Wallet } from "../waller/wallet.model";
 import { WalletStatus } from "../waller/wallet.interface";
+import { JwtPayload } from "jsonwebtoken";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const createUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
@@ -66,6 +67,7 @@ const addmoney = catchAsync(async (req: Request, res: Response, next: NextFuncti
 
 const sendmoney = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { amount, reciverId } = req.body;
+    
     const userId = req.user?.userId;
 
     if (!userId) {
@@ -178,8 +180,25 @@ const userwithdrawmoney = catchAsync(async (req: Request, res: Response, next: N
     });
 });
 
+const getMe = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const decodedToken = req.user as JwtPayload
+    console.log(decodedToken)
+    const result = await userService.getMe(decodedToken.userId);
+
+    // res.status(httpStatus.OK).json({
+    //     success: true,
+    //     message: "All Users Retrieved Successfully",
+    //     data: users
+    // })
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.CREATED,
+        message: "Your profile Retrieved Successfully",
+        data: result.data
+    })
+})
 export const userController = {
-    createUser, addmoney, userwithdrawmoney, sendmoney
+    createUser, addmoney, userwithdrawmoney, sendmoney,getMe
     // getallhistory
 }
 
