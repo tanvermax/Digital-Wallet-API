@@ -66,6 +66,12 @@ const createUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
         console.log(error);
     }
 });
+const getMe = (userId) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield user_model_1.User.findById(userId).select("-password");
+    return {
+        data: user
+    };
+});
 exports.userService = {
-    createUser
+    createUser, getMe
 };

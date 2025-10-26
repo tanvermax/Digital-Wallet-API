@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.WalletRoutes = void 0;
+const express_1 = require("express");
+const moneywallet_controller_1 = require("./moneywallet.controller");
+const cheakAuth_1 = require("../middleware/cheakAuth");
+const user_interface_1 = require("../modules/user/user.interface");
+const router = (0, express_1.Router)();
+router.get("/me", (0, cheakAuth_1.cheakAuth)(...Object.values(user_interface_1.Role)), moneywallet_controller_1.walletController.getwallet);
+exports.WalletRoutes = router;

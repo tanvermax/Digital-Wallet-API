@@ -51,10 +51,11 @@ const addMoneyToWallet = (agentId, userId, amount) => __awaiter(void 0, void 0, 
         if (agentUser.role !== 'USER') {
             throw new Error('User is not an agent and cannot perform this action.');
         }
-        const commission = amount * COMMISSION_RATE;
-        const amountToTransfer = amount - commission;
+        // const commission = Number(amount) * COMMISSION_RATE;
+        // const amountToTransfer = Number(amount) - commission;
+        // console.log("amountToTransfer",amountToTransfer)
         // Subtract the amount from the agent's balance
-        agentWallet.balance += amountToTransfer;
+        agentWallet.balance += amount;
         yield agentWallet.save({ session });
         // Find and update the user's wallet to add the amount
         const userWallet = yield wallet_model_1.Wallet.findOne({ 'owner': new mongoose_1.default.Types.ObjectId(userId) }).session(session);
@@ -65,9 +66,9 @@ const addMoneyToWallet = (agentId, userId, amount) => __awaiter(void 0, void 0, 
             throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "An agent cannot add money to their own wallet.");
         }
         // Add the amount to the user's balance
-        userWallet.balance -= amountToTransfer;
+        userWallet.balance -= amount;
         yield userWallet.save({ session });
-        console.log("req.user in addMoneyToWallet", commission, amountToTransfer, amount);
+        console.log("req.user in addMoneyToWallet", amount);
         // Create the transaction record
         const transaction = new transaction_model_1.Transaction({
             sender: agentWallet.owner._id, // The agent is the sender
@@ -75,11 +76,13 @@ const addMoneyToWallet = (agentId, userId, amount) => __awaiter(void 0, void 0, 
             amount: amount,
             type: transaction_interface_1.TransactionType.ADD_MONEY,
             status: transaction_interface_1.TransactionStatus.COMPLETED,
-            commision: commission,
+            totolammount: amount,
+            commision: 0,
             transactionId: new mongoose_1.default.Types.ObjectId(),
             timestamp: new Date(),
             commissionAgent: agentId,
         });
+        // console.log(transaction)
         yield transaction.save({ session });
         // Commit the transaction
         yield session.commitTransaction();
@@ -106,8 +109,9 @@ const withdrawfromWallet = (agentId, userId, amount) => __awaiter(void 0, void 0
             throw new Error('User wallet not found.');
         }
         // Calculate the commission
-        const commission = amount * COMMISSION_RATE;
-        const totalWithdrawalAmount = amount + commission; // User pays the fee on top of the amount
+        const commission = Number(amount) * COMMISSION_RATE;
+        const totalWithdrawalAmount = Number(amount) + commission; // User pays the fee on top of the amount
+        console.log("totalWithdrawalAmount", totalWithdrawalAmount);
         // Check if user has enough balance for the withdrawal plus commission
         if (userWallet.balance < totalWithdrawalAmount) {
             throw new Error('User account does not have enough money for this withdrawal.');
@@ -134,6 +138,7 @@ const withdrawfromWallet = (agentId, userId, amount) => __awaiter(void 0, void 0
             receiver: agentWallet.owner._id, // The agent is the receiver
             amount: amount,
             type: transaction_interface_1.TransactionType.WITHDRAW,
+            totolammount: totalWithdrawalAmount,
             status: transaction_interface_1.TransactionStatus.COMPLETED,
             commision: commission, // Store the commission amount
             commissionAgent: agentId, // Link the agent who earned the commission
@@ -142,7 +147,7 @@ const withdrawfromWallet = (agentId, userId, amount) => __awaiter(void 0, void 0
         // Commit the transaction
         yield session.commitTransaction();
         session.endSession();
-        return userWallet;
+        return transaction;
     }
     catch (error) {
         // Abort the transaction in case of any error
@@ -156,6 +161,7 @@ exports.withdrawfromWallet = withdrawfromWallet;
 const sendMoney = (receiverId, userId, amount) => __awaiter(void 0, void 0, void 0, function* () {
     const session = yield mongoose_1.default.startSession();
     session.startTransaction();
+    // console.log("receiverId", receiverId, userId, amount)
     try {
         // Find the sender's wallet first
         // console.log(" string,",receiverId, userId, amount)
@@ -169,14 +175,16 @@ const sendMoney = (receiverId, userId, amount) => __awaiter(void 0, void 0, void
         if (!receiverWallet) {
             throw new Error('Receiver wallet not found.');
         }
-        console.log("userId", userId);
-        console.log("receiverId", receiverId);
+        // console.log("userId",userId)
+        // console.log("receiverId",receiverId);
         // Ensure sender and receiver are not the same person
         if (userId === receiverId) {
             throw new Error('Cannot send money to yourself.');
         }
+        // console.log(amount)
         // Calculate the total amount to debit (amount + fee)
-        const totalDebitAmount = amount + SENDMONEY_FEE;
+        const totalDebitAmount = Number(amount) + SENDMONEY_FEE;
+        console.log("totalDebitAmount", totalDebitAmount);
         // CRITICAL VALIDATION: Check if the sender has enough balance
         if (senderWallet.balance < totalDebitAmount) {
             throw new Error('Insufficient balance to send money.');
@@ -192,10 +200,12 @@ const sendMoney = (receiverId, userId, amount) => __awaiter(void 0, void 0, void
             sender: senderWallet.owner._id,
             receiver: receiverWallet.owner._id,
             amount: amount,
-            fee: SENDMONEY_FEE, // Store the fee
-            type: transaction_interface_1.TransactionType.CASH_OUT,
+            fee: SENDMONEY_FEE,
+            totolammount: totalDebitAmount,
+            type: transaction_interface_1.TransactionType.SEND_MONEY,
             status: transaction_interface_1.TransactionStatus.COMPLETED,
         });
+        // console.log(transaction)
         yield transaction.save({ session });
         // Commit the transaction
         yield session.commitTransaction();

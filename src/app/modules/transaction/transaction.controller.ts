@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import  httpStatus  from 'http-status-codes';
 import { NextFunction, Request, Response } from "express";
 import { catchAsync } from "../../utils/catchAsync";
@@ -11,7 +12,7 @@ const getHistory = catchAsync(async (req: Request, res: Response, next: NextFunc
 
     try {
 
-        const userId = req.user.userId;
+        const userId = (req.user as any)?.userId;
 
         const allhistroy = await transactionService.getallhistory(userId);
 

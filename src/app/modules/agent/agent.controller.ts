@@ -10,7 +10,9 @@ import { WalletStatus } from '../waller/wallet.interface';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const addmoney = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { amount, userId } = req.body;
-    const agentId = req.user?.userId;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const agentId = (req.user as any)?.userId;
+    
     console.log(amount, userId)
     // 1. Validate Agent Authentication
     if (!agentId) {

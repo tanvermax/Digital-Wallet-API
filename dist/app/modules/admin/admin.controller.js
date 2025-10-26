@@ -31,6 +31,16 @@ const getAllUser = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(vo
         data: alluser,
     });
 }));
+const getAllAgent = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    // console.log("alluser from controller")
+    const allagent = yield admin_service_1.adminService.getallagent();
+    (0, sendresponse_1.sendResponse)(res, {
+        statusCode: http_status_codes_1.default.CREATED,
+        message: "All User data recived successfully",
+        success: true,
+        data: allagent,
+    });
+}));
 const getWallets = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     // console.log("alluser from controller")
     const alluser = yield admin_service_1.adminService.allwallets();
@@ -56,8 +66,18 @@ const getTransactions = (0, catchAsync_1.catchAsync)((req, res, next) => __await
 }));
 const updateWalletStatus = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     // console.log("alluser from controller")
+    // console.log('Request body:', req.body);
+    // console.log('Request method:', req.method);
+    // console.log('Request headers:', req.headers);
     const { userId } = req.params;
+    console.log(req.params);
+    console.log(req.body);
+    if (!req.body || !req.body.status) {
+        throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "Status is required in request body");
+    }
     const { status } = req.body;
+    // console.log(req.body)
+    // console.log(userId, status)
     const alluser = yield admin_service_1.adminService.updateWallet(userId, status);
     (0, sendresponse_1.sendResponse)(res, {
         statusCode: http_status_codes_1.default.CREATED,
@@ -88,22 +108,28 @@ const updateagentWallet = (0, catchAsync_1.catchAsync)((req, res, next) => __awa
         data: alluser,
     });
 }));
-exports.adminController = {
-    getAllUser, getWallets, getTransactions, updateWalletStatus, updateagentWallet
-    // getallhistory
-};
-// Convert query to Record<string, string>
-// const stringQuery: Record<string, string> = {};
-// Object.keys(query).forEach(key => {
-//     const value = query[key];
-//     if (typeof value === 'string') {
-//         stringQuery[key] = value;
-//     } else if (Array.isArray(value)) {
-//         stringQuery[key] = value.join(',');
-//     } else if (typeof value === 'object' && value !== null) {
-//         stringQuery[key] = JSON.stringify(value);
-//     } else if (value !== undefined) {
-//         stringQuery[key] = String(value);
+// const getblock = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+//     // console.log("alluser from controller")
+//     const { user } = req.params;
+//     const { status } = req.body;
+//     console.log("userId", agentId)
+//     const IsAgentUser = await User.findOne({ _id: agentId });
+//     // console.log("IsAgentUser",IsAgentUser.role)
+//     // console.log("status",status)
+//     if (!IsAgentUser) {
+//         throw new AppError(httpStatus.BAD_REQUEST, "agent does not exit")
 //     }
-// });
-// console.log("uiserid", stringQuery);
+//     if (IsAgentUser.role === "USER") {
+//         throw new AppError(httpStatus.BAD_GATEWAY, "this agent is user, it cant be suspened")
+//     }
+//     const alluser = await adminService.updateWallet(agentId, status);
+//     sendResponse(res, {
+//         statusCode: httpStatus.CREATED,
+//         message: `Wallet for agent ${IsAgentUser.name} has been ${status.toLowerCase()}.`,
+//         success: true,
+//         data: alluser,
+//     })
+// })
+exports.adminController = {
+    getAllUser, getAllAgent, getWallets, getTransactions, updateWalletStatus, updateagentWallet
+};

@@ -35,6 +35,7 @@ const createUser = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(vo
 }));
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const addmoney = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
         // const { amount } = req.body;
         const { amount, agent } = req.body;
@@ -43,7 +44,7 @@ const addmoney = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void
         if (!req.user) {
             throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "user is not auhtenticated");
         }
-        const userId = req.user.userId;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId;
         // console.log("req.user in add money",agent,userId ,amount)
         if (!amount || amount <= 0) {
             throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "Invalid amount");
@@ -66,6 +67,7 @@ const addmoney = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void
 const sendmoney = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const { amount, reciverId } = req.body;
+    // console.log(amount,reciverId)
     const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId;
     if (!userId) {
         return (0, sendresponse_1.sendResponse)(res, {
@@ -118,6 +120,14 @@ const sendmoney = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(voi
             data: null,
         });
     }
+    if (Isreciverisagent.role === "ADMIN") {
+        return (0, sendresponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.default.FORBIDDEN,
+            message: "You enter wrong id , please provide a vaild ID",
+            success: false,
+            data: null,
+        });
+    }
     const updatedWallet = yield (0, wallet_service_1.sendMoney)(reciverId, userId, amount);
     (0, sendresponse_1.sendResponse)(res, {
         statusCode: http_status_codes_1.default.CREATED,
@@ -128,7 +138,7 @@ const sendmoney = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(voi
 }));
 const userwithdrawmoney = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
-    const { agent, amount } = req.body;
+    const { agentId, amount } = req.body;
     const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId;
     if (!userId) {
         throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "User is not authenticated");
@@ -138,6 +148,8 @@ const userwithdrawmoney = (0, catchAsync_1.catchAsync)((req, res, next) => __awa
     }
     // 1. Validate the user's wallet status
     const userWallet = yield wallet_model_1.Wallet.findOne({ owner: userId });
+    console.log("agentId, amount", agentId, amount);
+    console.log(userWallet);
     if (!userWallet) {
         throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "User wallet not found");
     }
@@ -145,14 +157,24 @@ const userwithdrawmoney = (0, catchAsync_1.catchAsync)((req, res, next) => __awa
         throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "User account is blocked. Cannot withdraw money.");
     }
     // 2. Validate the agent's wallet status
-    const agentWallet = yield wallet_model_1.Wallet.findOne({ owner: agent });
+    const agentWallet = yield wallet_model_1.Wallet.findOne({ owner: agentId });
     if (!agentWallet) {
-        throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "Agent wallet not found");
+        return (0, sendresponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.default.FORBIDDEN,
+            message: "Agent wallet not found",
+            success: false,
+            data: null,
+        });
     }
     if (agentWallet.status === wallet_interface_1.WalletStatus.SUSPEND) {
-        throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "Agent account is SUSPEND. Cannot process withdrawal.");
+        return (0, sendresponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.default.FORBIDDEN,
+            message: "Agent account is SUSPEND. Cannot process withdrawal.",
+            success: false,
+            data: null,
+        });
     }
-    const updatedWallet = yield (0, wallet_service_1.withdrawfromWallet)(agent, userId, amount);
+    const updatedWallet = yield (0, wallet_service_1.withdrawfromWallet)(agentId, userId, amount);
     (0, sendresponse_1.sendResponse)(res, {
         statusCode: http_status_codes_1.default.CREATED,
         message: "Withdrawal request submitted successfully",
@@ -160,7 +182,23 @@ const userwithdrawmoney = (0, catchAsync_1.catchAsync)((req, res, next) => __awa
         data: updatedWallet,
     });
 }));
+const getMe = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const decodedToken = req.user;
+    console.log(decodedToken);
+    const result = yield user_service_1.userService.getMe(decodedToken.userId);
+    // res.status(httpStatus.OK).json({
+    //     success: true,
+    //     message: "All Users Retrieved Successfully",
+    //     data: users
+    // })
+    (0, sendresponse_1.sendResponse)(res, {
+        success: true,
+        statusCode: http_status_codes_1.default.CREATED,
+        message: "Your profile Retrieved Successfully",
+        data: result.data
+    });
+}));
 exports.userController = {
-    createUser, addmoney, userwithdrawmoney, sendmoney
+    createUser, addmoney, userwithdrawmoney, sendmoney, getMe
     // getallhistory
 };

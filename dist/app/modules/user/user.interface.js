@@ -12,5 +12,5 @@ var IsActive;
 (function (IsActive) {
     IsActive["ACTIVE"] = "ACTIVE";
     IsActive["INACTIVE"] = "INACTIVE";
-    IsActive["BLOCKED"] = "BLOCKED";
+    IsActive["BLOCKED"] = "BLOCK";
 })(IsActive || (exports.IsActive = IsActive = {}));

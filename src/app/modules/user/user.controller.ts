@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextFunction, Request, Response } from "express";
 import httpStatus from 'http-status-codes';
@@ -42,7 +43,7 @@ const addmoney = catchAsync(async (req: Request, res: Response, next: NextFuncti
             throw new AppError(httpStatus.BAD_REQUEST, "user is not auhtenticated");
         }
 
-        const userId = req.user.userId;
+        const userId = (req.user as any)?.userId;
         // console.log("req.user in add money",agent,userId ,amount)
 
         if (!amount || amount <= 0) {
@@ -68,7 +69,7 @@ const addmoney = catchAsync(async (req: Request, res: Response, next: NextFuncti
 const sendmoney = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { amount, reciverId } = req.body;
     // console.log(amount,reciverId)
-    const userId = req.user?.userId;
+    const userId = (req.user as any)?.userId;
 
     if (!userId) {
         return sendResponse(res, {
@@ -151,7 +152,7 @@ const sendmoney = catchAsync(async (req: Request, res: Response, next: NextFunct
 const userwithdrawmoney = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { agentId, amount } = req.body;
 
-    const userId = req.user?.userId;
+    const userId = (req.user as any)?.userId;
     if (!userId) {
         throw new AppError(httpStatus.BAD_REQUEST, "User is not authenticated");
     }

@@ -34,8 +34,9 @@ const env_1 = require("../../config/env");
 const credentialsLogin = (payoad) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password } = payoad;
     const IsUserExit = yield user_model_1.User.findOne({ email });
+    console.log(IsUserExit);
     if (!IsUserExit) {
-        throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "user des not exit");
+        throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "User does not exit");
     }
     if (!IsUserExit.password) {
         throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "User password not found");

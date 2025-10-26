@@ -67,6 +67,9 @@ const transactionSchema = new mongoose_1.Schema({
         ref: 'User',
         required: false, // Not all transactions will have an agent
     },
+    totolammount: {
+        type: Number, required: true
+    },
     status: {
         type: String,
         enum: Object.values(transaction_interface_1.TransactionStatus),
