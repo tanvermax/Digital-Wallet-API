@@ -1,4 +1,4 @@
-import  httpStatus  from 'http-status-codes';
+import httpStatus from 'http-status-codes';
 import { NextFunction, Request, Response } from "express";
 import { catchAsync } from "../../utils/catchAsync";
 import AppError from '../../errorHelper/AppError';
@@ -11,7 +11,7 @@ import { WalletStatus } from '../waller/wallet.interface';
 const addmoney = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { amount, userId } = req.body;
     const agentId = req.user?.userId;
-
+    console.log(amount, userId)
     // 1. Validate Agent Authentication
     if (!agentId) {
         throw new AppError(httpStatus.BAD_REQUEST, "Agent is not authenticated");
@@ -28,12 +28,12 @@ const addmoney = catchAsync(async (req: Request, res: Response, next: NextFuncti
         throw new AppError(httpStatus.NOT_FOUND, "Agent wallet not found");
     }
     if (agentWallet.status === WalletStatus.SUSPEND) {
-            sendResponse(res, {
-        statusCode: httpStatus.BAD_GATEWAY,
-        message: "Agent's account is SUSPEND. Cannot add money.",
-        success: false,
-        data: null,
-    });
+        sendResponse(res, {
+            statusCode: httpStatus.BAD_GATEWAY,
+            message: "Agent's account is SUSPEND. Cannot add money.",
+            success: false,
+            data: null,
+        });
         throw new AppError(httpStatus.BAD_REQUEST, "Agent's account is SUSPEND. Cannot add money.");
     }
 

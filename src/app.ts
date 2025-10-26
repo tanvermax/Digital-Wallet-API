@@ -8,6 +8,7 @@ import { globalErrorHandler } from "./app/middleware/globalerrorhandler";
 import notFounde from "./app/middleware/notFounde";
 const app = express();
 
+app.use(cookieParser())
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }))
@@ -22,7 +23,6 @@ app.use(cors({
 
 
 app.options("/", cors());
-app.use(cookieParser())
 
 app.use("/api/v1",router)
 

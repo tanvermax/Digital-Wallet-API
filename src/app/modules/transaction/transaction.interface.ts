@@ -20,6 +20,7 @@ export interface ITransaction{
     receiver:Types.ObjectId;
     amount:number;
     fee?:number;
+    totolammount:number,
     commision?:number;
     commissionAgent?:Types.ObjectId;
     status:TransactionStatus;

@@ -3,7 +3,7 @@ import { Types } from "mongoose";
 
 export enum WalletStatus {
     ACTIVE = "ACTIVE",
-    BLOCKED = "BLOCKED",
+    BLOCKED = "BLOCK",
     SUSPEND="SUSPEND",
     APPROVE="APPROVE"
     // You could also add 'FROZEN', 'DEACTIVATED', etc.

@@ -48,13 +48,13 @@ export const addMoneyToWallet = async (agentId: string, userId: string, amount: 
             throw new Error('User is not an agent and cannot perform this action.');
         }
 
-        const commission = amount * COMMISSION_RATE;
-        const amountToTransfer = amount - commission;
+        // const commission = Number(amount) * COMMISSION_RATE;
+        // const amountToTransfer = Number(amount) - commission;
 
-
+        // console.log("amountToTransfer",amountToTransfer)
 
         // Subtract the amount from the agent's balance
-        agentWallet.balance += amountToTransfer;
+        agentWallet.balance += amount;
 
         await agentWallet.save({ session });
 
@@ -71,10 +71,10 @@ export const addMoneyToWallet = async (agentId: string, userId: string, amount: 
         }
 
         // Add the amount to the user's balance
-        userWallet.balance -= amountToTransfer;
+        userWallet.balance -= amount;
         await userWallet.save({ session });
 
-        console.log("req.user in addMoneyToWallet", commission, amountToTransfer, amount)
+        console.log("req.user in addMoneyToWallet", amount)
 
         // Create the transaction record
         const transaction = new Transaction({
@@ -83,15 +83,19 @@ export const addMoneyToWallet = async (agentId: string, userId: string, amount: 
             amount: amount,
             type: TransactionType.ADD_MONEY,
             status: TransactionStatus.COMPLETED,
-            commision: commission,
+            totolammount:amount ,
+            commision: 0,
             transactionId: new mongoose.Types.ObjectId(),
             timestamp: new Date(),
             commissionAgent: agentId,
         });
+        // console.log(transaction)
+
         await transaction.save({ session });
 
         // Commit the transaction
         await session.commitTransaction();
+
         session.endSession();
 
         return userWallet;
@@ -119,11 +123,12 @@ export const withdrawfromWallet = async (agentId: string, userId: string, amount
         }
 
         // Calculate the commission
-        const commission = amount * COMMISSION_RATE;
-        const totalWithdrawalAmount = amount + commission; // User pays the fee on top of the amount
-
+        const commission = Number(amount) * COMMISSION_RATE;
+        const totalWithdrawalAmount = Number(amount) + commission; // User pays the fee on top of the amount
+        console.log("totalWithdrawalAmount", totalWithdrawalAmount)
         // Check if user has enough balance for the withdrawal plus commission
         if (userWallet.balance < totalWithdrawalAmount) {
+
             throw new Error('User account does not have enough money for this withdrawal.');
         }
 
@@ -136,7 +141,7 @@ export const withdrawfromWallet = async (agentId: string, userId: string, amount
 
         const agentUser = await User.findById(agentId);
         if (!agentUser || agentUser.role !== 'AGENT') {
-            throw new AppError(httpStatus.BAD_REQUEST,'Invalid agent.');
+            throw new AppError(httpStatus.BAD_REQUEST, 'Invalid agent.');
         }
 
         // Debit the full amount (including commission) from the user's wallet
@@ -155,6 +160,7 @@ export const withdrawfromWallet = async (agentId: string, userId: string, amount
             receiver: agentWallet.owner._id, // The agent is the receiver
             amount: amount,
             type: TransactionType.WITHDRAW,
+            totolammount: totalWithdrawalAmount,
             status: TransactionStatus.COMPLETED,
             commision: commission, // Store the commission amount
             commissionAgent: agentId, // Link the agent who earned the commission
@@ -165,7 +171,7 @@ export const withdrawfromWallet = async (agentId: string, userId: string, amount
         await session.commitTransaction();
         session.endSession();
 
-        return userWallet;
+        return transaction;
 
     } catch (error) {
         // Abort the transaction in case of any error
@@ -180,6 +186,7 @@ export const withdrawfromWallet = async (agentId: string, userId: string, amount
 export const sendMoney = async (receiverId: string, userId: string, amount: number) => {
     const session = await mongoose.startSession();
     session.startTransaction();
+    // console.log("receiverId", receiverId, userId, amount)
 
     try {
         // Find the sender's wallet first
@@ -197,17 +204,19 @@ export const sendMoney = async (receiverId: string, userId: string, amount: numb
             throw new Error('Receiver wallet not found.');
         }
 
-        console.log("userId",userId)
-        console.log("receiverId",receiverId);
+        // console.log("userId",userId)
+        // console.log("receiverId",receiverId);
 
 
         // Ensure sender and receiver are not the same person
         if (userId === receiverId) {
             throw new Error('Cannot send money to yourself.');
         }
-
+        // console.log(amount)
         // Calculate the total amount to debit (amount + fee)
-        const totalDebitAmount = amount + SENDMONEY_FEE;
+        const totalDebitAmount = Number(amount) + SENDMONEY_FEE;
+
+        console.log("totalDebitAmount", totalDebitAmount)
 
         // CRITICAL VALIDATION: Check if the sender has enough balance
         if (senderWallet.balance < totalDebitAmount) {
@@ -227,10 +236,12 @@ export const sendMoney = async (receiverId: string, userId: string, amount: numb
             sender: senderWallet.owner._id,
             receiver: receiverWallet.owner._id,
             amount: amount,
-            fee: SENDMONEY_FEE, // Store the fee
-            type: TransactionType.CASH_OUT,
+            fee: SENDMONEY_FEE,
+            totolammount: totalDebitAmount,
+            type: TransactionType.SEND_MONEY,
             status: TransactionStatus.COMPLETED,
         });
+        // console.log(transaction)
         await transaction.save({ session });
 
         // Commit the transaction

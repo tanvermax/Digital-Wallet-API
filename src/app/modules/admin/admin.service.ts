@@ -10,7 +10,7 @@ import mongoose from 'mongoose';
 
 
 const getalluser = async () => {
-    const users = await User.find({});
+    const users = await User.find({role:"USER"});
     const totalUser = await User.countDocuments();
     return {
         data: users,
@@ -20,15 +20,28 @@ const getalluser = async () => {
     }
 
 }
+const getallagent = async () => {
+    const users = await User.find({role:"AGENT"});
+    const totalAgent = await User.countDocuments();
+    return {
+        data: users,
+        meta: {
+            totaluser: totalAgent
+        }
+    }
+
+}
 
 
 const allwallets = async () => {
     const wallets = await Wallet.find({});
     const totwallets = await Wallet.countDocuments();
+    const totalbalance = wallets.reduce((sum, wallet) => sum + wallet.balance, 0);
     return {
         data: wallets,
         meta: {
-            totaluser: totwallets
+            totaluser: totwallets,
+            totalbalance:totalbalance
         }
     }
 
@@ -57,9 +70,9 @@ const updateWallet = async (userId: string, status: WalletStatus) => {
     if (!Object.values(WalletStatus).includes(status)) {
         throw new AppError(httpStatus.BAD_REQUEST, "Invalid wallet status provided.");
     }
-    const updatedWallet = await Wallet.findOneAndUpdate(
-        { owner: new mongoose.Types.ObjectId(userId) },
-        { status: status },
+    const updatedWallet = await User.findOneAndUpdate(
+        { _id: new mongoose.Types.ObjectId(userId) },
+        { isActive: status },
         { new: true, runValidators: true } // Return the updated document and run schema validators
     );
 
@@ -71,5 +84,5 @@ const updateWallet = async (userId: string, status: WalletStatus) => {
 
 
 export const adminService = {
-    getalluser, allwallets, allTansactions, updateWallet
+    getalluser,getallagent, allwallets, allTansactions, updateWallet
 }

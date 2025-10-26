@@ -67,7 +67,7 @@ const addmoney = catchAsync(async (req: Request, res: Response, next: NextFuncti
 
 const sendmoney = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { amount, reciverId } = req.body;
-    
+    // console.log(amount,reciverId)
     const userId = req.user?.userId;
 
     if (!userId) {
@@ -128,6 +128,14 @@ const sendmoney = catchAsync(async (req: Request, res: Response, next: NextFunct
             data: null,
         });
     }
+    if (Isreciverisagent.role === "ADMIN") {
+        return sendResponse(res, {
+            statusCode: httpStatus.FORBIDDEN,
+            message: "You enter wrong id , please provide a vaild ID",
+            success: false,
+            data: null,
+        });
+    }
 
     const updatedWallet = await sendMoney(reciverId, userId, amount);
 
@@ -141,9 +149,9 @@ const sendmoney = catchAsync(async (req: Request, res: Response, next: NextFunct
 
 
 const userwithdrawmoney = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { agent, amount } = req.body;
-    const userId = req.user?.userId;
+    const { agentId, amount } = req.body;
 
+    const userId = req.user?.userId;
     if (!userId) {
         throw new AppError(httpStatus.BAD_REQUEST, "User is not authenticated");
     }
@@ -154,23 +162,37 @@ const userwithdrawmoney = catchAsync(async (req: Request, res: Response, next: N
 
     // 1. Validate the user's wallet status
     const userWallet = await Wallet.findOne({ owner: userId });
+    console.log("agentId, amount",agentId, amount)
+
+    console.log(userWallet)
     if (!userWallet) {
         throw new AppError(httpStatus.NOT_FOUND, "User wallet not found");
     }
     if (userWallet.status === WalletStatus.BLOCKED) {
+
         throw new AppError(httpStatus.BAD_REQUEST, "User account is blocked. Cannot withdraw money.");
     }
 
     // 2. Validate the agent's wallet status
-    const agentWallet = await Wallet.findOne({ owner: agent });
+    const agentWallet = await Wallet.findOne({ owner: agentId });
     if (!agentWallet) {
-        throw new AppError(httpStatus.NOT_FOUND, "Agent wallet not found");
+        return sendResponse(res, {
+            statusCode: httpStatus.FORBIDDEN,
+            message: "Agent wallet not found",
+            success: false,
+            data: null,
+        });
     }
     if (agentWallet.status === WalletStatus.SUSPEND) {
-        throw new AppError(httpStatus.BAD_REQUEST, "Agent account is SUSPEND. Cannot process withdrawal.");
+        return sendResponse(res, {
+            statusCode: httpStatus.FORBIDDEN,
+            message: "Agent account is SUSPEND. Cannot process withdrawal.",
+            success: false,
+            data: null,
+        });
     }
 
-    const updatedWallet = await withdrawfromWallet(agent, userId, amount);
+    const updatedWallet = await withdrawfromWallet(agentId, userId, amount);
 
     sendResponse(res, {
         statusCode: httpStatus.CREATED,
@@ -198,7 +220,7 @@ const getMe = catchAsync(async (req: Request, res: Response, next: NextFunction)
     })
 })
 export const userController = {
-    createUser, addmoney, userwithdrawmoney, sendmoney,getMe
+    createUser, addmoney, userwithdrawmoney, sendmoney, getMe
     // getallhistory
 }
 

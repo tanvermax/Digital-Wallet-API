@@ -16,7 +16,7 @@ export const createUserZodSchema = z.object({
                     "Password must be at least 8 characters long, contain 1 uppercase letter, 1 digit, and 2 special characters",
             }
         ).optional(),
-    role: z.string({ error: "role should be here" })
+    role: z.enum(["USER", "AGENT"], { message: "Please select a valid role" })
     .optional(),
     phone: z
         .string({ error: "Phone number must be string" })

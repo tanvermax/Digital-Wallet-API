@@ -32,6 +32,9 @@ const transactionSchema = new Schema<ITransaction>({
         ref: 'User',
         required: false, // Not all transactions will have an agent
     },
+    totolammount:{
+        type:Number,required:true
+    },
     status: {
         type: String,
         enum: Object.values(TransactionStatus),
