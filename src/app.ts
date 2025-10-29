@@ -14,7 +14,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }))
 app.use(cors({
   origin: [
-    // "https://deigital-wallet.vercel.app",
+    "https://deigital-wallet.vercel.app",
     "http://localhost:3000"
   ],
   credentials: true,
@@ -22,7 +22,6 @@ app.use(cors({
 }));
 
 
-app.options("/", cors());
 
 app.use("/api/v1", router)
 

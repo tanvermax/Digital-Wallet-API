@@ -10,9 +10,9 @@ import { adminController } from "./admin.controller";
 const router = Router();
 
 
-router.get("/alluser", cheakAuth(Role.ADMIN), adminController.getAllUser);
+router.get("/alluser", cheakAuth(Role.ADMIN,Role.USER,Role.AGENT), adminController.getAllUser);
 // router.get("/userblock", cheakAuth(Role.ADMIN), adminController.getblock);
-router.get("/allagent", cheakAuth(Role.ADMIN), adminController.getAllAgent);
+router.get("/allagent", cheakAuth(Role.ADMIN,Role.USER,Role.AGENT), adminController.getAllAgent);
 router.get("/wallets", cheakAuth(Role.ADMIN), adminController.getWallets);
 router.get("/transactions", cheakAuth(Role.ADMIN), adminController.getTransactions);
 router.patch("/wallet/user/:userId",cheakAuth(Role.ADMIN),adminController.updateWalletStatus)

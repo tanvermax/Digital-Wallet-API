@@ -15,12 +15,12 @@ app.use((0, cookie_parser_1.default)());
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use((0, cors_1.default)({
-    origin: ["https://deigital-wallet.vercel.app",
+    origin: [
+        "https://deigital-wallet.vercel.app",
         "http://localhost:3000"
     ],
     credentials: true,
 }));
-app.options("/", (0, cors_1.default)());
 app.use("/api/v1", routes_1.router);
 app.get("/", (req, res) => {
     res.status(200).json({
