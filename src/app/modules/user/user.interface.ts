@@ -28,7 +28,7 @@ export interface IUser {
     // wallet:number,
     email: string;
     password?: string;
-    phone?: number;
+    phone: number;
     picture?: string;
     address?: string;
     isDeleted?: string;

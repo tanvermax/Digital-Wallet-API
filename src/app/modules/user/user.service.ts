@@ -13,8 +13,11 @@ const createUser = async (payload: Partial<IUser>) => {
     session.startTransaction();
 
     try {
-        const { email, password, ...rest } = payload;
-
+        const { email, password, phone, ...rest } = payload;
+console.log(email, password, phone,)
+        if (!phone) {
+            throw new AppError(httpStatus.NOT_ACCEPTABLE, "please provide phone number")
+        }
 
         const hashpassword = await bcryptjs.hash(password as string, 10)
         const isUserExit = await User.findOne({ email });
@@ -22,13 +25,18 @@ const createUser = async (payload: Partial<IUser>) => {
         if (isUserExit) {
             throw new AppError(httpStatus.BAD_REQUEST, "User alredy exit in")
         }
+        const isUserNumberExit = await User.findOne({ phone });
 
+        if (isUserNumberExit) {
+            throw new AppError(httpStatus.BAD_REQUEST, "User number alredy exit in")
+        }
 
         const authprovider: IAuthProvider = { provider: "creadentials", providerId: email as string }
         const user = await User.create([
             {
 
                 email,
+                phone,
                 password: hashpassword,
                 auth: [authprovider],
                 ...rest,
@@ -66,5 +74,5 @@ const getMe = async (userId: string) => {
 };
 
 export const userService = {
-    createUser,getMe
+    createUser, getMe
 }

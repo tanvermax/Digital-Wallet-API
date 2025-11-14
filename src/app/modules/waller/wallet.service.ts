@@ -83,7 +83,7 @@ export const addMoneyToWallet = async (agentId: string, userId: string, amount: 
             amount: amount,
             type: TransactionType.ADD_MONEY,
             status: TransactionStatus.COMPLETED,
-            totolammount:amount ,
+            totolammount: amount,
             commision: 0,
             transactionId: new mongoose.Types.ObjectId(),
             timestamp: new Date(),
@@ -216,7 +216,7 @@ export const sendMoney = async (receiverId: string, userId: string, amount: numb
         // Calculate the total amount to debit (amount + fee)
         const totalDebitAmount = Number(amount) + SENDMONEY_FEE;
 
-        console.log("totalDebitAmount", totalDebitAmount)
+        // console.log("totalDebitAmount", totalDebitAmount)
 
         // CRITICAL VALIDATION: Check if the sender has enough balance
         if (senderWallet.balance < totalDebitAmount) {
@@ -224,11 +224,15 @@ export const sendMoney = async (receiverId: string, userId: string, amount: numb
         }
 
         // Step 1: Debit the sender's wallet first
-        senderWallet.balance -= totalDebitAmount;
+        senderWallet.balance = Number(senderWallet.balance) - Number(totalDebitAmount);
         await senderWallet.save({ session });
 
+        // console.log("amount", amount);
+        // console.log("receiverWallet", receiverWallet);
+
         // Step 2: Credit the receiver's wallet
-        receiverWallet.balance += amount; // Receiver gets the original amount
+
+        receiverWallet.balance = Number(receiverWallet.balance) + Number(amount);
         await receiverWallet.save({ session });
 
         // Create the transaction record

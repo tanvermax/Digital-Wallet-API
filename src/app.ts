@@ -8,7 +8,7 @@ import { globalErrorHandler } from "./app/middleware/globalerrorhandler";
 import notFounde from "./app/middleware/notFounde";
 const app = express();
 
-app.use(cookieParser())
+app.use(cookieParser());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }))
@@ -33,6 +33,6 @@ app.get("/", (req: Request, res: Response) => {
 
 app.use(globalErrorHandler);
 
-app.use(notFounde)
+app.use(notFounde);
 
 export default app;

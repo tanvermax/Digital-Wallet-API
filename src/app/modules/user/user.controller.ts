@@ -67,7 +67,18 @@ const addmoney = catchAsync(async (req: Request, res: Response, next: NextFuncti
 
 
 const sendmoney = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { amount, reciverId } = req.body;
+    const { amount, phone } = req.body;
+    // console.log(amount, phone)
+    const reciverId = await User.findOne({ phone: phone });
+    // console.log(reciverId)
+    if (!reciverId) {
+        return sendResponse(res, {
+            statusCode: httpStatus.BAD_REQUEST,
+            message: "phone is not authenticated",
+            success: false,
+            data: null,
+        });
+    }
     // console.log(amount,reciverId)
     const userId = (req.user as any)?.userId;
 
@@ -79,7 +90,6 @@ const sendmoney = catchAsync(async (req: Request, res: Response, next: NextFunct
             data: null,
         });
     }
-
     const isUservalid = await Wallet.findOne({ owner: userId });
     const isRecivervalid = await Wallet.findOne({ owner: reciverId });
 
@@ -163,7 +173,7 @@ const userwithdrawmoney = catchAsync(async (req: Request, res: Response, next: N
 
     // 1. Validate the user's wallet status
     const userWallet = await Wallet.findOne({ owner: userId });
-    console.log("agentId, amount",agentId, amount)
+    console.log("agentId, amount", agentId, amount)
 
     console.log(userWallet)
     if (!userWallet) {
