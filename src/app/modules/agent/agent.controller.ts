@@ -6,10 +6,17 @@ import { sendResponse } from '../../utils/sendresponse';
 import { addMoneyToWallet } from '../waller/wallet.service';
 import { Wallet } from '../waller/wallet.model';
 import { WalletStatus } from '../waller/wallet.interface';
+import { User } from '../user/user.model';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const addmoney = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { amount, userId } = req.body;
+    const { amount, phone } = req.body;
+
+    const userId = await User.findOne({ phone: phone });
+
+    if (!userId) {
+        throw new AppError(httpStatus.NOT_FOUND, "user phone not found");
+    }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const agentId = (req.user as any)?.userId;
     
@@ -48,7 +55,7 @@ const addmoney = catchAsync(async (req: Request, res: Response, next: NextFuncti
     }
 
     // 4. Perform the Transaction
-    const updatedWallet = await addMoneyToWallet(userId, agentId, amount);
+    const updatedWallet = await addMoneyToWallet(userId._id.toString(), agentId, amount);
 
     // 5. Send Success Response
     sendResponse(res, {

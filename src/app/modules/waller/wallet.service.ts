@@ -145,11 +145,12 @@ export const withdrawfromWallet = async (agentId: string, userId: string, amount
         }
 
         // Debit the full amount (including commission) from the user's wallet
-        userWallet.balance -= totalWithdrawalAmount;
+        // Debit user
+        userWallet.balance = Number(userWallet.balance) - Number(totalWithdrawalAmount);
         await userWallet.save({ session });
 
-        // Credit the amount (without commission) to the agent's wallet
-        agentWallet.balance += amount;
+        // Credit agent
+        agentWallet.balance = Number(agentWallet.balance) + Number(amount);
         await agentWallet.save({ session });
 
         console.log("req.user in withdrawfromWallet hi", commission, totalWithdrawalAmount, amount)

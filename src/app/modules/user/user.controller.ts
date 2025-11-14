@@ -148,7 +148,7 @@ const sendmoney = catchAsync(async (req: Request, res: Response, next: NextFunct
         });
     }
 
-    const updatedWallet = await sendMoney(reciverId, userId, amount);
+    const updatedWallet = await sendMoney(reciverId._id.toString(), userId, amount);
 
     sendResponse(res, {
         statusCode: httpStatus.CREATED,
@@ -160,9 +160,15 @@ const sendmoney = catchAsync(async (req: Request, res: Response, next: NextFunct
 
 
 const userwithdrawmoney = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { agentId, amount } = req.body;
+    const { phone, amount } = req.body;
 
     const userId = (req.user as any)?.userId;
+
+    const agentId = await User.findOne({ phone: phone });
+
+    if (!agentId) {
+        throw new AppError(httpStatus.NOT_ACCEPTABLE, "Agent is not Found");
+    }
     if (!userId) {
         throw new AppError(httpStatus.BAD_REQUEST, "User is not authenticated");
     }
@@ -173,9 +179,8 @@ const userwithdrawmoney = catchAsync(async (req: Request, res: Response, next: N
 
     // 1. Validate the user's wallet status
     const userWallet = await Wallet.findOne({ owner: userId });
-    console.log("agentId, amount", agentId, amount)
 
-    console.log(userWallet)
+
     if (!userWallet) {
         throw new AppError(httpStatus.NOT_FOUND, "User wallet not found");
     }
@@ -186,6 +191,10 @@ const userwithdrawmoney = catchAsync(async (req: Request, res: Response, next: N
 
     // 2. Validate the agent's wallet status
     const agentWallet = await Wallet.findOne({ owner: agentId });
+    console.log("userWallet", userWallet)
+
+    console.log("agentWallet", agentWallet)
+
     if (!agentWallet) {
         return sendResponse(res, {
             statusCode: httpStatus.FORBIDDEN,
@@ -203,7 +212,7 @@ const userwithdrawmoney = catchAsync(async (req: Request, res: Response, next: N
         });
     }
 
-    const updatedWallet = await withdrawfromWallet(agentId, userId, amount);
+    const updatedWallet = await withdrawfromWallet(agentId._id.toString(), userId, amount);
 
     sendResponse(res, {
         statusCode: httpStatus.CREATED,
